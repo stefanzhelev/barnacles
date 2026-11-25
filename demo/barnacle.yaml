@@ -1,0 +1,29 @@
+# Demo gallery. Build it from the repo root with: barnacles serve demo
+site:
+  title: Barnacles demo
+  header_title: Barnacles
+
+defaults:
+  notebook:
+    mode: html-wasm
+
+items:
+  "notebooks":
+    title: Notebooks
+    description: Each a single marimo file.
+
+  "notebooks/html_example.py":
+    title: Static HTML example
+    mode: html
+    description: "Static HTML export: Python runs once at build time."
+
+  "notebooks/interactive":
+    title: Interactive
+
+  "notebooks/interactive/wasm_example.py":
+    title: WASM example
+    description: "WASM export: Python runs in your browser via Pyodide."
+
+  "notebooks/interactive/sub-folder/html_example_2.py":
+    title: Nested static example
+    mode: html
