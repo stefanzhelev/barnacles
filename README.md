@@ -5,15 +5,15 @@ A static gallery for [marimo](https://marimo.io) notebooks. Point it at a folder
 ## Install
 
 ```sh
-pip install barnacles                    # or: uv tool install barnacles
-pip install "barnacles[thumbnails]"      # optional: notebook screenshots for the cards
-playwright install chromium              #   (needed once for thumbnails)
+uv tool install barnacles      # or: pip install barnacles
 ```
+
+That is all. The first build that needs card thumbnails downloads a headless Chromium (about 100 MB, see [Thumbnails](#thumbnails)).
 
 ## Usage
 
 ```sh
-barnacles init my-gallery     # barnacles.yaml + notebooks/example.py
+barnacles init my-gallery     # creates my-gallery/barnacles.yaml + my-gallery/notebooks/example.py
 cd my-gallery
 barnacles serve               # build, then serve at http://127.0.0.1:8000
 barnacles edit                # open the notebooks in the marimo editor
@@ -21,6 +21,38 @@ barnacles build               # build into dist/ for publishing
 ```
 
 Each command takes an optional project path (a folder with `barnacles.yaml`, or the file itself). `build` and `serve` accept `--no-thumbnails` for faster builds. Run `barnacles <command> -h` for all options.
+
+## Thumbnails
+
+Each notebook card shows a light and a dark screenshot of the notebook, taken with [Playwright](https://playwright.dev/python/)'s headless Chromium. Playwright comes with barnacles, but uv (or pip) can't download the browser itself, so barnacles does it:
+
+- **Automatically:** when a build needs screenshots and Chromium is missing, barnacles runs `python -m playwright install --only-shell chromium` with its own Python, printing the command first. This happens once per Playwright version. The browser goes into Playwright's shared cache (`~/Library/Caches/ms-playwright` on macOS, `~/.cache/ms-playwright` on Linux, `%LOCALAPPDATA%\ms-playwright` on Windows; set `PLAYWRIGHT_BROWSERS_PATH` to change it).
+- **Explicitly:** `barnacles install-browser` does the same step on its own, e.g. as a separate CI step. On a fresh Linux machine, `barnacles install-browser --with-deps` also installs Chromium's system libraries (via `apt`, so it needs sudo and Debian/Ubuntu).
+
+If the browser can't be installed or started (offline, missing Linux libraries), the build still succeeds: it prints a warning saying how to fix it, and the cards show a letter instead. Use `--no-thumbnails` to skip screenshots, or set `thumbnail` in `barnacles.yaml` to use your own images.
+
+### In CI
+
+On GitHub Actions, the plain install works:
+
+```yaml
+- uses: astral-sh/setup-uv@v6
+- run: uv tool install barnacles    # or: pip install barnacles
+- run: barnacles build              # downloads Chromium on the first run
+```
+
+To keep the download in its own step and cache it between runs:
+
+```yaml
+- uses: astral-sh/setup-uv@v6
+- run: uv tool install barnacles    # or: pip install barnacles
+- uses: actions/cache@v4
+  with:
+    path: ~/.cache/ms-playwright
+    key: ms-playwright-${{ runner.os }}-${{ hashFiles('**/requirements*.txt', '**/uv.lock') }}
+- run: barnacles install-browser    # add --with-deps on minimal Linux images
+- run: barnacles build
+```
 
 ## barnacles.yaml
 
@@ -75,7 +107,6 @@ Notes:
 
 ```sh
 uv sync                                  # installs barnacles in editable mode + dev tools
-uv run playwright install chromium
 uv run barnacles serve demo              # the demo gallery in demo/
 uv run pytest
 ```

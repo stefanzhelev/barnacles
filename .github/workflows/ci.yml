@@ -18,5 +18,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: uv sync
       - run: uv run pytest
-      - run: uv run barnacles build demo --no-thumbnails
+      # thumbnails on: the build must install Chromium by itself and produce the screenshots
+      - run: uv run barnacles build demo
+      - name: Check the thumbnails were made
+        run: test "$(find demo/dist/thumbnails -name '*.png' | wc -l)" -eq 6
       - run: uv build

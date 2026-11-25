@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from barnacles import config
+from barnacles import config, thumbnails
 from barnacles.build import build
 from barnacles.cli import main
 from barnacles.discovery import discover, walk
@@ -95,3 +95,37 @@ def test_cli_init_then_build(tmp_path, capsys):
     assert main(["init", str(tmp_path)]) == 1  # refuses to overwrite
     assert "not overwriting" in capsys.readouterr().err
     discover(config.load(tmp_path))  # the scaffold is a valid project
+
+
+class FakeChromium:
+    def __init__(self, installed: bool):
+        self.installed = installed
+
+    def launch(self):
+        if not self.installed:
+            raise RuntimeError("BrowserType.launch: Executable doesn't exist at /somewhere/chrome-headless-shell")
+        return "browser"
+
+
+def test_launch_installs_a_missing_browser_once(monkeypatch):
+    chromium, calls = FakeChromium(installed=False), []
+
+    def install(with_deps=False, log=print):
+        calls.append(with_deps)
+        chromium.installed = True
+
+    monkeypatch.setattr(thumbnails, "install_browser", install)
+    pw = type("PW", (), {"chromium": chromium})()
+    assert thumbnails._launch(pw, log=lambda _: None) == "browser" and calls == [False]
+    assert thumbnails._launch(pw, log=lambda _: None) == "browser" and calls == [False]  # present: no install
+
+
+def test_launch_does_not_install_on_other_errors(monkeypatch):
+    class Broken:
+        def launch(self):
+            raise RuntimeError("Host system is missing dependencies to run browsers")
+
+    monkeypatch.setattr(thumbnails, "install_browser", lambda **_: pytest.fail("should not install"))
+    with pytest.raises(RuntimeError, match="missing dependencies"):
+        thumbnails._launch(type("PW", (), {"chromium": Broken()})(), log=lambda _: None)
+    assert "--with-deps" in thumbnails._hint("Host system is missing dependencies to run browsers")

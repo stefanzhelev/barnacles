@@ -4,6 +4,7 @@
   barnacles build [PROJECT]  export every notebook and render the gallery
   barnacles serve [PROJECT]  build, then serve the gallery locally
   barnacles edit  [PROJECT | NOTEBOOK]   open notebooks in the marimo editor
+  barnacles install-browser [--with-deps]  download the Chromium used for thumbnails
 
 PROJECT is a folder holding barnacles.yaml (default: the current folder) or the file itself.
 """
@@ -17,7 +18,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import __version__, config
+from . import __version__, config, thumbnails
 from .build import build
 from .marimo_export import marimo
 
@@ -70,6 +71,10 @@ def cmd_edit(args: argparse.Namespace) -> None:
     marimo("edit", str(target))
 
 
+def cmd_install_browser(args: argparse.Namespace) -> None:
+    thumbnails.install_browser(with_deps=args.with_deps)
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="barnacles", description="A static gallery for marimo notebooks.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -96,6 +101,10 @@ def parser() -> argparse.ArgumentParser:
     s = sub.add_parser("edit", help="open notebooks in the marimo editor")
     s.add_argument("target", nargs="?", default=".", help="a project (opens its notebooks folder) or a notebook .py")
     s.set_defaults(func=cmd_edit)
+
+    s = sub.add_parser("install-browser", help="download the Chromium used for thumbnails (build does this when needed)")
+    s.add_argument("--with-deps", action="store_true", help="also install its system libraries (Linux; uses sudo)")
+    s.set_defaults(func=cmd_install_browser)
     return p
 
 
