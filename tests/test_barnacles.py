@@ -129,3 +129,26 @@ def test_launch_does_not_install_on_other_errors(monkeypatch):
     with pytest.raises(RuntimeError, match="missing dependencies"):
         thumbnails._launch(type("PW", (), {"chromium": Broken()})(), log=lambda _: None)
     assert "--with-deps" in thumbnails._hint("Host system is missing dependencies to run browsers")
+
+
+def test_exports_never_prompt(monkeypatch, tmp_path):
+    # a notebook with a `# /// script` header makes marimo ask about a sandbox when stdin is a
+    # terminal; with the output captured that question is invisible and the build hangs
+    import subprocess
+
+    from barnacles import marimo_export
+
+    runs = []
+
+    def run(cmd, **kwargs):
+        runs.append((cmd, kwargs))
+        if "html" in cmd:  # the static export writes one file that static() then edits
+            Path(cmd[cmd.index("-o") + 1]).write_text("<head></head>")
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(marimo_export.subprocess, "run", run)
+    marimo_export.static(tmp_path / "nb.py", tmp_path / "out.html")
+    marimo_export.wasm(tmp_path / "nb.py", tmp_path / "wasm")
+    assert len(runs) == 2
+    for cmd, kwargs in runs:
+        assert "--no-sandbox" in cmd and kwargs["stdin"] is subprocess.DEVNULL
