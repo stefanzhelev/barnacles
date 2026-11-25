@@ -1,4 +1,4 @@
-"""barnacle.yaml: load, validate and fill in defaults.
+"""barnacles.yaml: load, validate and fill in defaults.
 
 Every path in the file (including the keys under `items`) is relative to the file itself.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import yaml
 
-FILENAME = "barnacle.yaml"
+FILENAME = "barnacles.yaml"
 WEB = Path(__file__).parent / "web"
 
 SECTIONS = {"site", "paths", "defaults", "items"}
@@ -24,12 +24,12 @@ MODES = ("html-wasm", "html")
 
 
 class ConfigError(Exception):
-    """A problem in barnacle.yaml or the project it describes."""
+    """A problem in barnacles.yaml or the project it describes."""
 
 
 @dataclass
 class Config:
-    root: Path                      # the folder holding barnacle.yaml
+    root: Path                      # the folder holding barnacles.yaml
     title: str
     header_title: str
     logo: Path
@@ -55,7 +55,7 @@ def _check_keys(where: str, given: object, kind: str) -> None:
 
 
 def find(project: Path) -> Path:
-    """The barnacle.yaml for `project`, which is either that file or the folder holding it."""
+    """The barnacles.yaml for `project`, which is either that file or the folder holding it."""
     path = project if project.suffix in (".yaml", ".yml") else project / FILENAME
     if not path.is_file():
         raise ConfigError(f"no {FILENAME} in {project.resolve()}; create one with `barnacles init`")

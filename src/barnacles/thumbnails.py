@@ -1,4 +1,4 @@
-"""Card thumbnails: the images set in barnacle.yaml, or light + dark screenshots of each notebook.
+"""Card thumbnails: the images set in barnacles.yaml, or light + dark screenshots of each notebook.
 
 Screenshots need the optional `thumbnails` extra (Playwright) and a headless Chromium:
     pip install "barnacles[thumbnails]" && playwright install chromium

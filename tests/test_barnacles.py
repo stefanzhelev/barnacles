@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
 
 def project(tmp_path: Path, yaml: str = "", notebooks: dict[str, str] | None = None) -> Path:
-    (tmp_path / "barnacle.yaml").write_text(yaml)
+    (tmp_path / "barnacles.yaml").write_text(yaml)
     for rel, title in (notebooks or {"notebooks/a_one.py": "One", "notebooks/sub/two.py": "Two"}).items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / rel).write_text(NOTEBOOK.format(title=title))

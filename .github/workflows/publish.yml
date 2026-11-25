@@ -1,5 +1,9 @@
 # Publishes to PyPI when a GitHub release is published. Uses PyPI trusted publishing:
-# add this repo + workflow (publish.yml) + environment (pypi) as a trusted publisher on pypi.org first.
+# on pypi.org, add a (pending) trusted publisher with owner stefanzhelev, repository barnacles,
+# workflow publish.yml and environment pypi.
+#
+# Release steps: bump __version__ in src/barnacles/__init__.py, push, then publish a GitHub
+# release tagged v<version> (e.g. v0.2.0). The build fails if the tag and __version__ differ.
 name: Publish to PyPI
 
 on:
@@ -7,13 +11,38 @@ on:
     types: [published]
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Check the release tag matches __version__
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/barnacles/__init__.py)
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::release tag $GITHUB_REF_NAME does not match __version__ $version"
+            exit 1
+          fi
+      - run: uv sync
+      - run: uv run pytest
+      - run: uv run barnacles build demo --no-thumbnails
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
   publish:
+    needs: build
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
       - uses: astral-sh/setup-uv@v6
-      - run: uv build
       - run: uv publish --trusted-publishing always

@@ -18,8 +18,8 @@ dependencies = ["marimo>=0.20", "pyyaml>=6"]
 thumbnails = ["playwright>=1.40"]
 
 [project.urls]
-Homepage = "https://github.com/octopyth/barnacles"
-Issues = "https://github.com/octopyth/barnacles/issues"
+Homepage = "https://github.com/stefanzhelev/barnacles"
+Issues = "https://github.com/stefanzhelev/barnacles/issues"
 
 [project.scripts]
 barnacles = "barnacles.cli:main"

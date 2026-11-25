@@ -1,6 +1,6 @@
 # Barnacles
 
-A static gallery for [marimo](https://marimo.io) notebooks. Point it at a folder of notebooks, describe them in one `barnacle.yaml`, and get a site you can host anywhere (GitHub Pages included). Folders become gallery folders, each notebook gets a card with a light/dark thumbnail, and notebooks run either in the browser (WASM) or once at build time (static HTML).
+A static gallery for [marimo](https://marimo.io) notebooks. Point it at a folder of notebooks, describe them in one `barnacles.yaml`, and get a site you can host anywhere (GitHub Pages included). Folders become gallery folders, each notebook gets a card with a light/dark thumbnail, and notebooks run either in the browser (WASM) or once at build time (static HTML).
 
 ## Install
 
@@ -13,18 +13,18 @@ playwright install chromium              #   (needed once for thumbnails)
 ## Usage
 
 ```sh
-barnacles init my-gallery     # barnacle.yaml + notebooks/example.py
+barnacles init my-gallery     # barnacles.yaml + notebooks/example.py
 cd my-gallery
 barnacles serve               # build, then serve at http://127.0.0.1:8000
 barnacles edit                # open the notebooks in the marimo editor
 barnacles build               # build into dist/ for publishing
 ```
 
-Each command takes an optional project path (a folder with `barnacle.yaml`, or the file itself). `build` and `serve` accept `--no-thumbnails` for faster builds. Run `barnacles <command> -h` for all options.
+Each command takes an optional project path (a folder with `barnacles.yaml`, or the file itself). `build` and `serve` accept `--no-thumbnails` for faster builds. Run `barnacles <command> -h` for all options.
 
-## barnacle.yaml
+## barnacles.yaml
 
-Every key is optional. All paths, including the keys under `items`, are relative to `barnacle.yaml`.
+Every key is optional. All paths, including the keys under `items`, are relative to `barnacles.yaml`.
 
 ```yaml
 site:
@@ -80,7 +80,7 @@ uv run barnacles serve demo              # the demo gallery in demo/
 uv run pytest
 ```
 
-Releases: bump `__version__` in `src/barnacles/__init__.py`, then publish a GitHub release. `.github/workflows/publish.yml` builds the package and uploads it to PyPI.
+Releases: bump `__version__` in `src/barnacles/__init__.py`, push, then publish a GitHub release tagged `v<version>` (e.g. `v0.2.0`). `.github/workflows/publish.yml` checks the tag matches, runs the tests, builds the package and uploads it to PyPI.
 
 ## License
 
