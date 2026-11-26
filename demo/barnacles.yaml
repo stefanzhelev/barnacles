@@ -1,4 +1,4 @@
-# Demo gallery. Build it from the repo root with: barnacles serve demo
+# Demo catalog. Build it from the repo root with: barnacles serve demo
 site:
   title: Barnacles demo
   header_title: Barnacles

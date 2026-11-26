@@ -1,10 +1,10 @@
-# Barnacles - a catalog for Marimo apps
+# Barnacles: a static HTML catalog for marimo apps
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/stefanzhelev/barnacles/main/docs/screenshot.png" alt="The catalog home page of a new barnacles project, in the dark theme" width="800">
 </p>
 
-Barnacles generates a configuration-driven catalog of [marimo](https://marimo.io) apps that can be hosted as static HTML. You describe the catalog in a single `barnacles.yaml`, and Barnacles runs each notebook once at build time and writes plain HTML files that any static host can serve, with no server or backend to run.
+Barnacles builds a static HTML catalog of [marimo](https://marimo.io) apps from a single configuration file. You describe the catalog in `barnacles.yaml`, and Barnacles runs each notebook once at build time and writes plain HTML files that any static host can serve, with no server or backend to run.
 
 The result is a set of static dashboards that load fast and are easy to host and keep up to date: build in Python (with AI coding agents if you like), then let a CI/CD job rebuild the catalog and publish it to GitHub Pages, Cloudflare Pages or any other static host.
 
@@ -189,7 +189,7 @@ To keep the download in its own step and cache it between runs:
 
 ```sh
 uv sync                                  # installs barnacles in editable mode + dev tools
-uv run barnacles serve demo              # the demo gallery in demo/
+uv run barnacles serve demo              # the demo catalog in demo/
 uv run pytest
 ```
 

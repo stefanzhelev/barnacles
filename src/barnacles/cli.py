@@ -1,8 +1,8 @@
 """The `barnacles` command line.
 
   barnacles init  [DIR]      start a project in DIR (default: ./barnacles)
-  barnacles build [PROJECT]  export every notebook and render the gallery
-  barnacles serve [PROJECT]  build, then serve the gallery locally
+  barnacles build [PROJECT]  export every notebook and render the catalog
+  barnacles serve [PROJECT]  build, then serve the catalog locally
   barnacles edit  [PROJECT | NOTEBOOK]   open notebooks in the marimo editor
   barnacles install-browser [--with-deps]  download the Chromium used for thumbnails
 
@@ -85,12 +85,12 @@ def parser() -> argparse.ArgumentParser:
     s.add_argument("dir", nargs="?", default="barnacles", help="where to create the project (default: barnacles)")
     s.set_defaults(func=cmd_init)
 
-    s = sub.add_parser("build", help="export every notebook and render the gallery")
+    s = sub.add_parser("build", help="export every notebook and render the catalog")
     s.add_argument("project", **project)
     s.add_argument("--no-thumbnails", action="store_true", help="skip notebook screenshots (faster)")
     s.set_defaults(func=cmd_build)
 
-    s = sub.add_parser("serve", help="build, then serve the gallery locally")
+    s = sub.add_parser("serve", help="build, then serve the catalog locally")
     s.add_argument("project", **project)
     s.add_argument("--port", type=int, default=8000)
     s.add_argument("--host", default="127.0.0.1")
