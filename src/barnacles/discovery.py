@@ -53,16 +53,18 @@ def notebook(cfg: Config, source: Path) -> dict:
 def folder(cfg: Config, path: Path) -> dict | None:
     """The tree under `path`: folders first, then notebooks, each sorted by name.
 
-    Counts are recursive. Folders without notebooks (at any depth), or whose names start
-    with "." or "_" (like marimo's __marimo__), are left out; the root folder is always kept.
+    Counts are recursive. Folders without notebooks (at any depth), folders whose names start
+    with "." or "_" (like marimo's __marimo__), and anything matching `exclude` are left out;
+    the root folder is always kept.
     """
     children, folders, notebooks = [], 0, 0
-    for sub in sorted(p for p in path.iterdir() if p.is_dir() and not p.name.startswith((".", "_"))):
+    subs = (p for p in path.iterdir() if p.is_dir() and not p.name.startswith((".", "_")))
+    for sub in sorted(p for p in subs if not cfg.excluded(p)):
         if node := folder(cfg, sub):
             children.append(node)
             folders += 1 + node["folders"]
             notebooks += node["notebooks"]
-    for source in sorted(path.glob("*.py")):
+    for source in sorted(p for p in path.glob("*.py") if not cfg.excluded(p)):
         children.append(notebook(cfg, source))
         notebooks += 1
     is_root = path == cfg.notebooks
@@ -108,5 +110,5 @@ def discover(cfg: Config) -> dict:
         raise ConfigError(f"{FILENAME}: paths.notebooks must be inside {cfg.root}")
     tree = folder(cfg, cfg.notebooks)
     if unmatched := sorted(set(cfg.items) - set(keys(tree, cfg))):
-        raise ConfigError(f"{FILENAME}: items match no notebook or non-empty folder: {unmatched}")
+        raise ConfigError(f"{FILENAME}: items match no notebook or non-empty folder (or only excluded ones): {unmatched}")
     return tree

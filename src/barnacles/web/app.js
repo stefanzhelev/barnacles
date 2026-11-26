@@ -65,10 +65,12 @@ function card(node) {
         stats(node),
         el("span", { className: "badge", textContent: "folder" })));
   }
+  // both images are in the page and CSS shows the one for the current theme (a light-only
+  // thumbnail is used in both themes), so switching themes needs no re-render
   const thumb = node.thumbnail
-    ? el("div", { className: "thumb" }, el("picture", {},
-        node.thumbnail_dark && el("source", { srcset: node.thumbnail_dark, media: "(prefers-color-scheme: dark)" }),
-        el("img", { src: node.thumbnail, alt: "", loading: "lazy" })))
+    ? el("div", { className: "thumb" },
+        node.thumbnail_dark && el("img", { src: node.thumbnail_dark, alt: "", loading: "lazy", className: "dark" }),
+        el("img", { src: node.thumbnail, alt: "", loading: "lazy", className: "light" }))
     : el("div", { className: "thumb", textContent: node.title.charAt(0) });
   return el("a", { className: "card", href: href(node) }, thumb,
     el("div", { className: "body" },
@@ -92,6 +94,31 @@ function showFolder(folder) {
   $("#gallery").scrollTop = 0;
 }
 
+// ---- theme: dark | system | light, remembered per browser ----
+// The page sets data-theme / data-scheme before the first paint (see index.html). Notebooks get
+// the choice as marimo's ?theme= URL parameter, so changing it reloads the open notebook.
+const root = document.documentElement;
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+const themes = { dark: "Dark", system: "System", light: "Light" };
+const themeSwitch = $(".theme");
+function applyTheme(choice, save) {
+  root.dataset.theme = choice;
+  root.dataset.scheme = choice === "system" ? (systemDark.matches ? "dark" : "light") : choice;
+  for (const b of themeSwitch.children) b.setAttribute("aria-checked", b.dataset.theme === choice);
+  if (save) {
+    try { localStorage.setItem("barnacles-theme", choice); } catch (e) {}
+    route();
+  }
+}
+themeSwitch.append(...Object.entries(themes).map(([value, label]) => {
+  const b = el("button", { type: "button", title: `${label} theme`, ariaLabel: `${label} theme` }, icon(value));
+  b.setAttribute("role", "radio");
+  b.dataset.theme = value;
+  b.addEventListener("click", () => root.dataset.theme !== value && applyTheme(value, true));
+  return b;
+}));
+systemDark.addEventListener("change", () => root.dataset.theme === "system" && applyTheme("system", false));
+
 // ---- drawer ----
 const burger = $(".burger");
 const setOpen = (open) => {
@@ -109,7 +136,7 @@ function route() {
   const key = raw.split("/").map(decodeURIComponent).join("/");
   const node = nodes.get(key) ?? nodes.get(key + "/") ?? tree;
   const isNotebook = node.type === "notebook";
-  const src = isNotebook ? `notebooks/${encode(node.path)}/` : null;
+  const src = isNotebook ? `notebooks/${encode(node.path)}/?theme=${root.dataset.theme}` : null;
 
   $("#gallery").hidden = isNotebook;
   frame.hidden = !isNotebook;
@@ -135,4 +162,5 @@ function route() {
   setOpen(false);
 }
 addEventListener("hashchange", route);
+applyTheme(root.dataset.theme, false);
 route();

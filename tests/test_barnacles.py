@@ -51,13 +51,37 @@ items:
     assert [nb["path"] for nb in walk(tree)] == ["sub/two", "first"]
 
 
+def test_exclude(tmp_path):
+    root = project(tmp_path, """
+exclude:
+  - "notebooks/drafts/**"
+  - "notebooks/archive"
+  - "**/_*.py"
+""", {
+        "notebooks/keep.py": "Keep",
+        "notebooks/_private.py": "Private",
+        "notebooks/sub/ok.py": "Ok",
+        "notebooks/sub/_scratch.py": "Scratch",
+        "notebooks/drafts/wip.py": "Draft",
+        "notebooks/drafts/deep/wip2.py": "Draft 2",
+        "notebooks/archive/old.py": "Old",
+    })
+    tree = discover(config.load(root))
+    assert [nb["path"] for nb in walk(tree)] == ["sub/ok", "keep"]
+    assert [c["name"] for c in tree["children"] if c["type"] == "folder"] == ["sub"]
+
+
 @pytest.mark.parametrize("yaml, message", [
+    ("exclude: notebooks/drafts", "exclude must be a list"),
+    ("exclude: ['notebooks/_x.py']\nitems: {notebooks/a_one.py: {title: x}, notebooks/_x.py: {title: y}}",
+     "match no notebook"),
     ("items: {notebooks/nope.py: {title: x}}", "match no notebook"),
     ("items: {notebooks/a_one.py: {colour: red}}", "unknown key"),
     ("items: {notebooks/a_one.py: {mode: pdf}}", "mode must be"),
     ("paths: {dist: .}", "would wipe"),
     ("site: {logo: missing.svg}", "not found"),
     ("bogus: 1", "unknown section"),
+    ("site: {theme: blue}", "site.theme must be one of"),
 ])
 def test_config_errors(tmp_path, yaml, message):
     root = project(tmp_path, yaml)
@@ -81,6 +105,7 @@ paths: {dist: out/site}
     dist = root / "out" / "site"
     page = (dist / "index.html").read_text()
     assert "<title>Tab &amp; co</title>" in page and "<span>Top</span>" in page
+    assert 'data-theme-default="dark"' in page
     assert not re.search(r"__[A-Z]+__", page)
     tree = json.loads(re.search(r'type="application/json">(.*?)</script>', page, re.S)[1].replace("<\\/", "</"))
     assert tree["notebooks"] == 2 and "source" not in json.dumps(tree)
@@ -91,10 +116,21 @@ paths: {dist: out/site}
 
 def test_cli_init_then_build(tmp_path, capsys):
     assert main(["init", str(tmp_path)]) == 0
-    assert (tmp_path / ".gitignore").is_file() and (tmp_path / "notebooks/example.py").is_file()
+    assert (tmp_path / ".gitignore").is_file() and (tmp_path / "notebooks/folder1/subfolder1/nb4.py").is_file()
     assert main(["init", str(tmp_path)]) == 1  # refuses to overwrite
     assert "not overwriting" in capsys.readouterr().err
-    discover(config.load(tmp_path))  # the scaffold is a valid project
+    tree = discover(config.load(tmp_path))  # the scaffold is a valid project
+    assert [(nb["path"], nb["mode"]) for nb in walk(tree)] == [
+        ("folder1/subfolder1/nb4", "html"), ("folder1/nb3", "html"), ("nb1", "html"), ("nb2", "html")]
+
+
+def test_cli_init_defaults_to_a_barnacles_folder(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    assert main(["init"]) == 0
+    assert (tmp_path / "barnacles/barnacles.yaml").is_file()
+    assert "cd barnacles" in capsys.readouterr().out
+    assert main(["init", "."]) == 0  # an explicit folder still works
+    assert (tmp_path / "barnacles.yaml").is_file()
 
 
 class FakeChromium:

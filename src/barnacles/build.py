@@ -58,6 +58,7 @@ def build(cfg: Config, screenshots: bool = True, log: Callable[[str], None] = pr
         "__HEADER_TITLE__": html.escape(cfg.header_title),
         "__LOGO__": assets["logo"],
         "__FAVICON__": assets["favicon"],
+        "__THEME__": cfg.theme,
         "__NOTEBOOKS__": json.dumps(_public(tree), indent=2).replace("</", "<\\/"),  # safe inside <script>
     }.items():
         page = page.replace(placeholder, value)

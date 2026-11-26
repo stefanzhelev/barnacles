@@ -1,10 +1,12 @@
 """barnacles.yaml: load, validate and fill in defaults.
 
-Every path in the file (including the keys under `items`) is relative to the file itself.
+Every path in the file (including the keys under `items` and the `exclude` patterns) is
+relative to the file itself.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -13,14 +15,35 @@ import yaml
 FILENAME = "barnacles.yaml"
 WEB = Path(__file__).parent / "web"
 
-SECTIONS = {"site", "paths", "defaults", "items"}
+SECTIONS = {"site", "paths", "exclude", "defaults", "items"}
 KEYS = {
-    "site": {"title", "header_title", "logo", "favicon"},
+    "site": {"title", "header_title", "logo", "favicon", "theme"},
     "paths": {"notebooks", "dist"},
     "notebook": {"title", "description", "mode", "slug", "thumbnail", "thumbnail_dark"},
     "folder": {"title", "description"},
 }
-MODES = ("html-wasm", "html")
+MODES = ("html", "html-wasm")  # first is the default
+THEMES = ("dark", "system", "light")  # first is the default
+
+
+def glob_regex(pattern: str) -> re.Pattern:
+    """A glob over `/`-separated paths: `*` and `?` stay within one folder, `**` spans folders.
+
+    `**/` also matches no folder at all, so `**/_*.py` matches `notebooks/_x.py`.
+    """
+    out, i = "", 0
+    while i < len(pattern):
+        if pattern.startswith("**/", i):
+            out, i = out + "(?:.*/)?", i + 3
+        elif pattern.startswith("**", i):
+            out, i = out + ".*", i + 2
+        elif pattern[i] == "*":
+            out, i = out + "[^/]*", i + 1
+        elif pattern[i] == "?":
+            out, i = out + "[^/]", i + 1
+        else:
+            out, i = out + re.escape(pattern[i]), i + 1
+    return re.compile(out)
 
 
 class ConfigError(Exception):
@@ -34,10 +57,17 @@ class Config:
     header_title: str
     logo: Path
     favicon: Path
+    theme: str
     notebooks: Path
     dist: Path
     defaults: dict[str, dict] = field(default_factory=dict)
     items: dict[str, dict] = field(default_factory=dict)
+    exclude: list[re.Pattern] = field(default_factory=list)
+
+    def excluded(self, path: Path) -> bool:
+        """Whether a notebook or folder matches an `exclude` pattern."""
+        key = path.relative_to(self.root).as_posix()
+        return any(p.fullmatch(key) for p in self.exclude)
 
     def settings(self, path: Path, kind: str) -> dict:
         """defaults.<kind> overridden by the item keyed by this path."""
@@ -83,6 +113,14 @@ def load(project: Path | str = ".") -> Config:
     for kind, values in defaults.items():
         _check_keys(f"defaults.{kind}", values, kind)
 
+    exclude = raw.get("exclude") or []
+    if not isinstance(exclude, list) or not all(isinstance(p, str) and p for p in exclude):
+        raise ConfigError(f"{FILENAME}: exclude must be a list of path patterns, e.g. [\"notebooks/drafts/**\"]")
+
+    theme = site.get("theme") or THEMES[0]
+    if theme not in THEMES:
+        raise ConfigError(f"{FILENAME}: site.theme must be one of {list(THEMES)}, got {theme!r}")
+
     title = str(site.get("title") or "Notebooks")
     logo = root / site["logo"] if site.get("logo") else WEB / "logo.svg"
     favicon = root / site["favicon"] if site.get("favicon") else logo
@@ -96,10 +134,12 @@ def load(project: Path | str = ".") -> Config:
         header_title=str(site.get("header_title") or title),
         logo=logo,
         favicon=favicon,
+        theme=theme,
         notebooks=(root / (paths.get("notebooks") or "notebooks")).resolve(),
         dist=(root / (paths.get("dist") or "dist")).resolve(),
         defaults=defaults,
         items={Path(k).as_posix(): v or {} for k, v in (raw.get("items") or {}).items()},
+        exclude=[glob_regex(p.strip("/")) for p in exclude],
     )
     if not cfg.notebooks.is_dir():
         raise ConfigError(f"{FILENAME}: paths.notebooks: {cfg.notebooks} is not a folder")

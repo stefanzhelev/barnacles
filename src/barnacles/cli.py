@@ -1,6 +1,6 @@
 """The `barnacles` command line.
 
-  barnacles init  [DIR]      start a project: barnacles.yaml + an example notebook
+  barnacles init  [DIR]      start a project in DIR (default: ./barnacles)
   barnacles build [PROJECT]  export every notebook and render the gallery
   barnacles serve [PROJECT]  build, then serve the gallery locally
   barnacles edit  [PROJECT | NOTEBOOK]   open notebooks in the marimo editor
@@ -37,8 +37,8 @@ def cmd_init(args: argparse.Namespace) -> None:
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, dest)
         print(f"  created {dest}")
-    where = "" if target.resolve() == Path.cwd() else f" {args.dir}"
-    print(f"\nNext: barnacles serve{where}")
+    cd = "" if target.resolve() == Path.cwd() else f"cd {args.dir}\n  "
+    print(f"\nNext:\n  {cd}barnacles serve")
 
 
 def cmd_build(args: argparse.Namespace) -> None:
@@ -81,8 +81,8 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True, metavar="COMMAND")
     project = {"nargs": "?", "default": ".", "help": "folder with barnacles.yaml, or the file (default: .)"}
 
-    s = sub.add_parser("init", help="create barnacles.yaml and an example notebook")
-    s.add_argument("dir", nargs="?", default=".", help="where to create the project (default: .)")
+    s = sub.add_parser("init", help="create barnacles.yaml and example notebooks")
+    s.add_argument("dir", nargs="?", default="barnacles", help="where to create the project (default: barnacles)")
     s.set_defaults(func=cmd_init)
 
     s = sub.add_parser("build", help="export every notebook and render the gallery")
