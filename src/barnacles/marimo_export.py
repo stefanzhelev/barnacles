@@ -18,6 +18,25 @@ new MutationObserver(() => {
 </script>
 """
 
+# Each cell output has a hover action bar (the fullscreen button) placed 2.25rem outside its right
+# edge, plus an invisible hover zone (`increase-pointer-area-x`, a ::before/::after reaching 50px
+# past both edges) so the pointer can travel to it. Below 640px the outputs span the whole page,
+# so both stick out past the edge and, though invisible, widen the page: a horizontal scrollbar on
+# phones. Moving the bar inside would put it under marimo's "..." menu button, and on a phone the
+# notebook already fills the screen (and touch screens have no hover), so there hide both.
+RESPONSIVE_CSS = """<style>
+@media (max-width: 640px) {
+  #App .\\-right-9 { display: none; }
+  #App .increase-pointer-area-x::before, #App .increase-pointer-area-x::after { display: none; }
+}
+</style>
+"""
+
+
+def _inject(page: Path, html: str) -> None:
+    """Add `html` at the end of the page's <head>."""
+    page.write_text(page.read_text().replace("</head>", html + "</head>", 1))
+
 # Exports always run in barnacles' own environment. Without this, marimo asks whether to use a
 # sandboxed venv for notebooks with a `# /// script` dependency header (when uv is installed and
 # stdin is a terminal), and the answer would change how a build behaves from one machine to another.
@@ -37,10 +56,11 @@ def marimo(*args: str, cwd: Path | None = None, quiet: bool = False) -> None:
 def static(source: Path, out: Path, quiet: bool = True) -> None:
     """Run the notebook once and write its output as a single HTML page (no code, no kernel)."""
     marimo("export", "html", str(source), "-o", str(out), "--no-include-code", "-f", NO_SANDBOX, cwd=source.parent, quiet=quiet)
-    out.write_text(out.read_text().replace("</head>", HIDE_KERNEL_TOAST + "</head>", 1))
+    _inject(out, HIDE_KERNEL_TOAST + RESPONSIVE_CSS)
 
 
 def wasm(source: Path, dest: Path, quiet: bool = True) -> None:
     """Export the notebook as a WASM app (Python runs in the browser via Pyodide) into `dest`."""
     marimo("export", "html-wasm", str(source), "-o", str(dest), "--mode", "run", "-f", NO_SANDBOX, cwd=source.parent, quiet=quiet)
     (dest / "CLAUDE.md").unlink(missing_ok=True)  # AI-assistant prompt marimo bundles with WASM exports
+    _inject(dest / "index.html", RESPONSIVE_CSS)

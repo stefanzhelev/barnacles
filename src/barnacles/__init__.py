@@ -1,3 +1,3 @@
-"""Barnacles: a catalog for Marimo notebooks."""
+"""Barnacles: a static HTML catalog for marimo apps."""
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"

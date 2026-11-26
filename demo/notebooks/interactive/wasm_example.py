@@ -30,7 +30,7 @@ def _(mo):
 def _(mo):
     n = mo.ui.slider(1, 20, value=8, label="Points")
     amp = mo.ui.slider(1, 10, value=5, label="Amplitude")
-    mo.hstack([n, amp], justify="start")
+    mo.hstack([n, amp], justify="start", wrap=True)
     return amp, n
 
 

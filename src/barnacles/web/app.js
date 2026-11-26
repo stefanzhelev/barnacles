@@ -36,6 +36,7 @@ const nodes = new Map(), parents = new Map();
 
 // ---- burger menu: Home + collapsible folder tree ----
 const menu = $("#menu");
+const menuTree = $("#menu .tree");
 function menuItems(folder) {
   return folder.children.map((child) => {
     if (child.type === "notebook") {
@@ -52,7 +53,7 @@ function menuItems(folder) {
     return details;
   });
 }
-menu.append(el("a", { href: "#/" }, icon("home"), el("span", { textContent: "Home" })), el("hr"), ...menuItems(tree));
+menuTree.append(el("a", { href: "#/" }, icon("home"), el("span", { textContent: "Home" })), el("hr"), ...menuItems(tree));
 
 // ---- gallery: one card per folder / notebook ----
 function card(node) {
@@ -96,7 +97,8 @@ function showFolder(folder) {
 
 // ---- theme: dark | system | light, remembered per browser ----
 // The page sets data-theme / data-scheme before the first paint (see index.html). Notebooks get
-// the choice as marimo's ?theme= URL parameter, so changing it reloads the open notebook.
+// the choice as marimo's ?theme= URL parameter, so changing it reloads the open notebook (and
+// only that: the menu, where the switch lives, stays open).
 const root = document.documentElement;
 const systemDark = matchMedia("(prefers-color-scheme: dark)");
 const themes = { dark: "Dark", system: "System", light: "Light" };
@@ -107,7 +109,7 @@ function applyTheme(choice, save) {
   for (const b of themeSwitch.children) b.setAttribute("aria-checked", b.dataset.theme === choice);
   if (save) {
     try { localStorage.setItem("barnacles-theme", choice); } catch (e) {}
-    route();
+    if (frame.getAttribute("src")) frame.src = notebookSrc(current());
   }
 }
 themeSwitch.append(...Object.entries(themes).map(([value, label]) => {
@@ -131,12 +133,15 @@ document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false)
 
 // ---- routing ----
 const frame = $("iframe");
+function current() {
+  const key = location.hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent).join("/");
+  return nodes.get(key) ?? nodes.get(key + "/") ?? tree;
+}
+const notebookSrc = (node) => `notebooks/${encode(node.path)}/?theme=${root.dataset.theme}`;
 function route() {
-  const raw = location.hash.replace(/^#\/?/, "");
-  const key = raw.split("/").map(decodeURIComponent).join("/");
-  const node = nodes.get(key) ?? nodes.get(key + "/") ?? tree;
+  const node = current();
   const isNotebook = node.type === "notebook";
-  const src = isNotebook ? `notebooks/${encode(node.path)}/?theme=${root.dataset.theme}` : null;
+  const src = isNotebook ? notebookSrc(node) : null;
 
   $("#gallery").hidden = isNotebook;
   frame.hidden = !isNotebook;
@@ -147,14 +152,12 @@ function route() {
   const trail = [...parents.get(node), node].filter((n) => n !== tree);
   $(".crumbs").replaceChildren(...trail.map((n, i) => el("li", {},
     i === trail.length - 1 ? el("span", { textContent: nameOf(n) }) : el("a", { href: href(n), textContent: nameOf(n) }))));
-  $(".newtab").hidden = !isNotebook;
-  if (isNotebook) $(".newtab").href = src;
   document.title = trail.length ? `${nameOf(node)} · ${siteTitle}` : siteTitle;
 
   // menu: highlight the current page and expand the folders leading to it
-  const current = href(node);
+  const here = href(node);
   for (const a of menu.querySelectorAll("a")) {
-    if (a.getAttribute("href") === current) a.setAttribute("aria-current", "page");
+    if (a.getAttribute("href") === here) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   }
   const open = new Set(trail.filter((n) => n.type === "folder").map((n) => n.path));

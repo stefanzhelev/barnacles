@@ -99,7 +99,7 @@ How the catalog looks in the browser.
 | `favicon` | browser tab icon | `logo` |
 | `theme` | default theme: `dark`, `system` (follow the operating system) or `light` | `dark` |
 
-Visitors can switch between dark, system and light with the switch in the header, and their choice is remembered in their browser. The theme applies to the whole catalog: the header, the navigation menu, the card thumbnails (each notebook is screenshotted in both themes) and the marimo apps themselves.
+Visitors can switch between dark, system and light with the switch at the bottom of the navigation menu, and their choice is remembered in their browser. The theme applies to the whole catalog: the header, the navigation menu, the card thumbnails (each notebook is screenshotted in both themes) and the marimo apps themselves.
 
 ### `paths`
 

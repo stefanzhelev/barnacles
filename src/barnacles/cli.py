@@ -76,7 +76,7 @@ def cmd_install_browser(args: argparse.Namespace) -> None:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="barnacles", description="A catalog for Marimo notebooks.")
+    p = argparse.ArgumentParser(prog="barnacles", description="A static HTML catalog for marimo apps.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = p.add_subparsers(dest="command", required=True, metavar="COMMAND")
     project = {"nargs": "?", "default": ".", "help": "folder with barnacles.yaml, or the file (default: .)"}

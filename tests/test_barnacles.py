@@ -167,6 +167,23 @@ def test_launch_does_not_install_on_other_errors(monkeypatch):
     assert "--with-deps" in thumbnails._hint("Host system is missing dependencies to run browsers")
 
 
+def test_exports_get_the_responsive_fix(monkeypatch, tmp_path):
+    from barnacles import marimo_export
+
+    def fake_marimo(*args, cwd=None, quiet=False):  # stand-in for `marimo export`: write a page
+        out = Path(args[args.index("-o") + 1])
+        page = out if args[1] == "html" else out / "index.html"
+        page.parent.mkdir(parents=True, exist_ok=True)
+        page.write_text("<html><head><title>x</title></head><body></body></html>")
+
+    monkeypatch.setattr(marimo_export, "marimo", fake_marimo)
+    marimo_export.static(tmp_path / "nb.py", tmp_path / "static.html")
+    marimo_export.wasm(tmp_path / "nb.py", tmp_path / "wasm")
+    for page in (tmp_path / "static.html", tmp_path / "wasm" / "index.html"):
+        html = page.read_text()
+        assert "increase-pointer-area-x" in html and html.index("max-width: 640px") < html.index("</head>")
+
+
 def test_exports_never_prompt(monkeypatch, tmp_path):
     # a notebook with a `# /// script` header makes marimo ask about a sandbox when stdin is a
     # terminal; with the output captured that question is invisible and the build hangs
@@ -178,8 +195,10 @@ def test_exports_never_prompt(monkeypatch, tmp_path):
 
     def run(cmd, **kwargs):
         runs.append((cmd, kwargs))
-        if "html" in cmd:  # the static export writes one file that static() then edits
-            Path(cmd[cmd.index("-o") + 1]).write_text("<head></head>")
+        out = Path(cmd[cmd.index("-o") + 1])  # both exports write a page that barnacles then edits
+        page = out if "html" in cmd else out / "index.html"
+        page.parent.mkdir(parents=True, exist_ok=True)
+        page.write_text("<head></head>")
         return subprocess.CompletedProcess(cmd, 0)
 
     monkeypatch.setattr(marimo_export.subprocess, "run", run)

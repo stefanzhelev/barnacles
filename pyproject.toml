@@ -1,7 +1,7 @@
 [project]
 name = "barnacles"
 dynamic = ["version"]
-description = "A catalog for Marimo notebooks."
+description = "A static HTML catalog for marimo apps."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
