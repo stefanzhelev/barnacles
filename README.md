@@ -1,5 +1,9 @@
 # Barnacles - a catalog for Marimo apps
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/stefanzhelev/barnacles/main/docs/screenshot.png" alt="The catalog home page of a new barnacles project, in the dark theme" width="800">
+</p>
+
 Barnacles generates a configuration-driven catalog of [marimo](https://marimo.io) apps that can be hosted as static HTML. You describe the catalog in a single `barnacles.yaml`, and Barnacles runs each notebook once at build time and writes plain HTML files that any static host can serve, with no server or backend to run.
 
 The result is a set of static dashboards that load fast and are easy to host and keep up to date: build in Python (with AI coding agents if you like), then let a CI/CD job rebuild the catalog and publish it to GitHub Pages, Cloudflare Pages or any other static host.
