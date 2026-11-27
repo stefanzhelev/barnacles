@@ -1,12 +1,12 @@
 """The `barnacles` command line.
 
-  barnacles init  [DIR]      start a project in DIR (default: ./barnacles)
+  barnacles init  [DIR]      start a project in DIR (default: ./marimo)
   barnacles build [PROJECT]  export every notebook and render the catalog
   barnacles serve [PROJECT]  build, then serve the catalog locally
   barnacles edit  [PROJECT | NOTEBOOK]   open notebooks in the marimo editor
   barnacles install-browser [--with-deps]  download the Chromium used for thumbnails
 
-PROJECT is a folder holding barnacles.yaml (default: the current folder) or the file itself.
+PROJECT is a folder holding marimo.yaml (default: the current folder) or the file itself.
 """
 
 from __future__ import annotations
@@ -79,10 +79,10 @@ def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="barnacles", description="A static HTML catalog for marimo apps.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = p.add_subparsers(dest="command", required=True, metavar="COMMAND")
-    project = {"nargs": "?", "default": ".", "help": "folder with barnacles.yaml, or the file (default: .)"}
+    project = {"nargs": "?", "default": ".", "help": "folder with marimo.yaml, or the file (default: .)"}
 
-    s = sub.add_parser("init", help="create barnacles.yaml and example notebooks")
-    s.add_argument("dir", nargs="?", default="barnacles", help="where to create the project (default: barnacles)")
+    s = sub.add_parser("init", help="create marimo.yaml and example notebooks")
+    s.add_argument("dir", nargs="?", default="marimo", help="where to create the project (default: marimo)")
     s.set_defaults(func=cmd_init)
 
     s = sub.add_parser("build", help="export every notebook and render the catalog")

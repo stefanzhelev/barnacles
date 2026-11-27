@@ -24,7 +24,7 @@ def _(mo):
     so its card is on the Subfolder 1 page, inside Folder 1.
 
     Like the others it is static HTML. To make a notebook interactive, set
-    `mode: html-wasm` for it in `barnacles.yaml`: Python then runs in the browser.
+    `mode: html-wasm` for it in `marimo.yaml`: Python then runs in the browser.
     """)
     return
 

@@ -1,4 +1,4 @@
-"""Card thumbnails: the images set in barnacles.yaml, or light + dark screenshots of each notebook.
+"""Card thumbnails: the images set in marimo.yaml, or light + dark screenshots of each notebook.
 
 Screenshots use Playwright's headless Chromium. Playwright is a regular dependency, but its browser is
 a separate download, so the first build that needs it installs it (into Playwright's shared cache,

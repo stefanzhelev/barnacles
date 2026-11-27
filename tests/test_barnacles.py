@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
 
 def project(tmp_path: Path, yaml: str = "", notebooks: dict[str, str] | None = None) -> Path:
-    (tmp_path / "barnacles.yaml").write_text(yaml)
+    (tmp_path / "marimo.yaml").write_text(yaml)
     for rel, title in (notebooks or {"notebooks/a_one.py": "One", "notebooks/sub/two.py": "Two"}).items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / rel).write_text(NOTEBOOK.format(title=title))
@@ -124,13 +124,13 @@ def test_cli_init_then_build(tmp_path, capsys):
         ("folder1/subfolder1/nb4", "html"), ("folder1/nb3", "html"), ("nb1", "html"), ("nb2", "html")]
 
 
-def test_cli_init_defaults_to_a_barnacles_folder(tmp_path, monkeypatch, capsys):
+def test_cli_init_defaults_to_a_marimo_folder(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     assert main(["init"]) == 0
-    assert (tmp_path / "barnacles/barnacles.yaml").is_file()
-    assert "cd barnacles" in capsys.readouterr().out
+    assert (tmp_path / "marimo/marimo.yaml").is_file()
+    assert "cd marimo" in capsys.readouterr().out
     assert main(["init", "."]) == 0  # an explicit folder still works
-    assert (tmp_path / "barnacles.yaml").is_file()
+    assert (tmp_path / "marimo.yaml").is_file()
 
 
 class FakeChromium:

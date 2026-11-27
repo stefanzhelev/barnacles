@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/stefanzhelev/barnacles/main/docs/screenshot.png" alt="The catalog home page of a new barnacles project, in the dark theme" width="800">
 </p>
 
-Barnacles builds a static HTML catalog of [marimo](https://marimo.io) apps from a single configuration file. You describe the catalog in `barnacles.yaml`, and Barnacles runs each notebook once at build time and writes plain HTML files that any static host can serve, with no server or backend to run.
+Barnacles builds a static HTML catalog of [marimo](https://marimo.io) apps from a single configuration file. You describe the catalog in `marimo.yaml`, and Barnacles runs each notebook once at build time and writes plain HTML files that any static host can serve, with no server or backend to run.
 
 The result is a set of static dashboards that load fast and are easy to host and keep up to date: build in Python (with AI coding agents if you like), then let a CI/CD job rebuild the catalog and publish it to GitHub Pages, Cloudflare Pages or any other static host.
 
@@ -21,18 +21,18 @@ That is all. The first build that needs card thumbnails downloads a headless Chr
 ## Usage
 
 ```sh
-barnacles init                # creates a barnacles/ project with example notebooks
-cd barnacles
+barnacles init                # creates a marimo/ project with example notebooks
+cd marimo
 barnacles serve               # build, then serve at http://127.0.0.1:8000
 barnacles edit                # open the notebooks in the marimo editor
 barnacles build               # build into dist/ for publishing
 ```
 
-`barnacles init` creates a `barnacles` folder:
+`barnacles init` creates a `marimo` folder:
 
 ```
-barnacles/
-├── barnacles.yaml            # catalog settings
+marimo/
+├── marimo.yaml               # catalog settings
 ├── .gitignore                # keeps dist/ out of git
 └── notebooks/                # the catalog home page
     ├── nb1.py
@@ -43,11 +43,11 @@ barnacles/
             └── nb4.py
 ```
 
-Pass a folder to create the project somewhere else (`barnacles init analytics`, or `barnacles init .` for the current folder). The other commands take an optional project path (a folder with `barnacles.yaml`, or the file itself). `build` and `serve` accept `--no-thumbnails` for faster builds. Run `barnacles <command> -h` for all options.
+Pass a folder to create the project somewhere else (`barnacles init analytics`, or `barnacles init .` for the current folder). The other commands take an optional project path (a folder with `marimo.yaml`, or the file itself). `build` and `serve` accept `--no-thumbnails` for faster builds. Run `barnacles <command> -h` for all options.
 
 ## Configuration
 
-The catalog is described by one `barnacles.yaml` next to your notebooks folder. Every section and every key is optional: an empty file gives a working catalog of everything in `notebooks/`. All paths, including `exclude` patterns and the keys under `items`, are relative to `barnacles.yaml`.
+The catalog is described by one `marimo.yaml` next to your notebooks folder. Every section and every key is optional: an empty file gives a working catalog of everything in `notebooks/`. All paths, including `exclude` patterns and the keys under `items`, are relative to `marimo.yaml`.
 
 A complete example:
 
@@ -124,7 +124,7 @@ exclude:
 ```
 
 - `*` matches within one folder, `?` matches one character, and `**` matches across folders (`**/` also matches no folder, so `**/_*.py` covers `notebooks/_x.py`).
-- Patterns are matched against the whole path relative to `barnacles.yaml`, so start them with `notebooks/` (or your `paths.notebooks`) or with `**/`.
+- Patterns are matched against the whole path relative to `marimo.yaml`, so start them with `notebooks/` (or your `paths.notebooks`) or with `**/`.
 - A folder left with no notebooks disappears from the catalog.
 
 Some folders are always skipped without being listed: those whose names start with `.` or `_` (such as marimo's `__marimo__`), and folders with no notebooks at any depth.
@@ -160,7 +160,7 @@ Each notebook card shows a light and a dark screenshot of the notebook, taken wi
 - **Automatically:** when a build needs screenshots and Chromium is missing, barnacles runs `python -m playwright install --only-shell chromium` with its own Python, printing the command first. This happens once per Playwright version. The browser goes into Playwright's shared cache (`~/Library/Caches/ms-playwright` on macOS, `~/.cache/ms-playwright` on Linux, `%LOCALAPPDATA%\ms-playwright` on Windows; set `PLAYWRIGHT_BROWSERS_PATH` to change it).
 - **Explicitly:** `barnacles install-browser` does the same step on its own, e.g. as a separate CI step. On a fresh Linux machine, `barnacles install-browser --with-deps` also installs Chromium's system libraries (via `apt`, so it needs sudo and Debian/Ubuntu).
 
-If the browser can't be installed or started (offline, missing Linux libraries), the build still succeeds: it prints a warning saying how to fix it, and the cards show a letter instead. Use `--no-thumbnails` to skip screenshots, or set `thumbnail` in `barnacles.yaml` to use your own images.
+If the browser can't be installed or started (offline, missing Linux libraries), the build still succeeds: it prints a warning saying how to fix it, and the cards show a letter instead. Use `--no-thumbnails` to skip screenshots, or set `thumbnail` in `marimo.yaml` to use your own images.
 
 ### In CI
 

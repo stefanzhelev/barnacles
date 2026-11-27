@@ -1,4 +1,4 @@
-"""barnacles.yaml: load, validate and fill in defaults.
+"""marimo.yaml: load, validate and fill in defaults.
 
 Every path in the file (including the keys under `items` and the `exclude` patterns) is
 relative to the file itself.
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-FILENAME = "barnacles.yaml"
+FILENAME = "marimo.yaml"
 WEB = Path(__file__).parent / "web"
 
 SECTIONS = {"site", "paths", "exclude", "defaults", "items"}
@@ -47,12 +47,12 @@ def glob_regex(pattern: str) -> re.Pattern:
 
 
 class ConfigError(Exception):
-    """A problem in barnacles.yaml or the project it describes."""
+    """A problem in marimo.yaml or the project it describes."""
 
 
 @dataclass
 class Config:
-    root: Path                      # the folder holding barnacles.yaml
+    root: Path                      # the folder holding marimo.yaml
     title: str
     header_title: str
     logo: Path
@@ -85,7 +85,7 @@ def _check_keys(where: str, given: object, kind: str) -> None:
 
 
 def find(project: Path) -> Path:
-    """The barnacles.yaml for `project`, which is either that file or the folder holding it."""
+    """The marimo.yaml for `project`, which is either that file or the folder holding it."""
     path = project if project.suffix in (".yaml", ".yml") else project / FILENAME
     if not path.is_file():
         raise ConfigError(f"no {FILENAME} in {project.resolve()}; create one with `barnacles init`")
